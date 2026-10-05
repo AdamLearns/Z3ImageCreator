@@ -23,8 +23,8 @@
         "Left finger: NUM0 pull",
         "Front edge: - health pot",
         "Rear edge: = mana pot",
-        "Bottom thumb: Y infreq AoE",
-        "Top thumb: R freq AoE"
+        "Top thumb: R freq AoE",
+        "Bottom thumb: Y infreq AoE"
       ]
     },
     "right_trigger": {
@@ -45,8 +45,8 @@
         "↑ /cheer",
         "↓ /thank",
         "→ buff (AI, PW:S, MotW)",
-        "Bottom thumb: PgDn",
-        "Top thumb: PgUp"
+        "Top thumb: PgUp",
+        "Bottom thumb: PgDn"
       ]
     },
     "bottom_thumb": {
