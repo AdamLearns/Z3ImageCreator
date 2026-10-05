@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from PIL import Image
 import render
@@ -17,6 +18,29 @@ class RendererTests(unittest.TestCase):
                      {'buttons': {'scroll': {'bindings': []}}}):
             with self.subTest(data=data), self.assertRaises(ValueError):
                 render.validate(data)
+
+    def test_font_size_validation(self):
+        for size in (True, 0, 7, 129, 32.5, '32', None):
+            with self.subTest(size=size), self.assertRaisesRegex(ValueError, 'font_size'):
+                render.validate({'font_size': size, 'buttons': {'scroll': {'bindings': ['Map']}}})
+
+    def test_custom_font_size_scales_rendered_text_and_cards(self):
+        profile = {'title': 'Font size example',
+                   'buttons': {'scroll': {'title': 'Scroll', 'bindings': ['Map → zoom']}}}
+        with tempfile.TemporaryDirectory() as directory:
+            for size in (None, 32, 64):
+                data = dict(profile)
+                if size is not None:
+                    data['font_size'] = size
+                with patch.object(render, 'load_font', wraps=render.load_font) as loader:
+                    render.render(data, Path(directory)/f'{size}.png')
+                expected = 28 if size is None else size
+                self.assertEqual([call.args[0] for call in loader.call_args_list],
+                                 [expected, expected+12])
+        small = render.make_cards(profile, render.load_font(28))[0]
+        large = render.make_cards(profile, render.load_font(64))[0]
+        self.assertGreater(large['h'], small['h'])
+        self.assertGreater(large['line_height'], small['line_height'])
 
     def test_default_colors_are_unique_and_stable(self):
         font = render.load_font(28)

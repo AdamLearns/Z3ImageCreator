@@ -45,6 +45,7 @@ corrected. It uses the default unique button colors. Run the command above to ge
 ```json
 {
   "title": "WoW bindings",
+  "font_size": 32,
   "buttons": {
     "left_fingertip": {
       "background": "#ff594f",
@@ -59,6 +60,10 @@ corrected. It uses the default unique button colors. Run the command above to ge
 ```
 
 - The outer `title` is optional and appears above the image.
+- The outer `font_size` sets label and card-heading text size in pixels. It is
+  optional (default: 28), and must be an integer from 8 to 128. The image title
+  uses 12px larger text. Line spacing and card heights adjust automatically.
+  `WoW.json` uses 32px, 4px larger than the original labels.
 - `buttons` is a nonempty object. Omit any button you don't want to annotate.
 - Each button's `title` is optional. If present and nonempty, it appears above its
   bindings and is underlined. An omitted title leaves no heading or blank line.

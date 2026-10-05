@@ -1,5 +1,6 @@
 {
   "title": "WoW bindings",
+  "font_size": 32,
   "buttons": {
     "front_edge": {
       "bindings": [

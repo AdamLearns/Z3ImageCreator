@@ -35,10 +35,13 @@ BUTTONS = {
 
 def validate(data):
     """Strict validation prevents unrelated JSON files silently becoming images."""
-    if not isinstance(data, dict) or set(data) - {'title', 'buttons'}:
-        raise ValueError('expected an object with only title and buttons')
+    if not isinstance(data, dict) or set(data) - {'title', 'font_size', 'buttons'}:
+        raise ValueError('expected an object with only title, font_size, and buttons')
     if 'title' in data and not isinstance(data['title'], str):
         raise ValueError('title must be a string')
+    size = data.get('font_size', 28)
+    if type(size) is not int or not 8 <= size <= 128:
+        raise ValueError('font_size must be an integer from 8 to 128 pixels')
     if not isinstance(data.get('buttons'), dict) or not data['buttons']:
         raise ValueError('buttons must be a nonempty object')
     for name, item in data['buttons'].items():
@@ -108,9 +111,11 @@ def make_cards(data, font):
         for binding in item['bindings']:
             lines.extend((line, False) for line in wrap(binding, font, 410))
         width = math.ceil(max(font.getlength(line) for line, _ in lines)) + 36
-        height = len(lines) * 38 + 28
+        line_height = max(font.size + 10,
+                          max(font.getbbox(line, anchor='lt')[3] for line, _ in lines) + 8)
+        height = len(lines) * line_height + 28
         cards.append(dict(name=name, side=BUTTONS[name][0], lines=lines,
-                          w=width, h=height, color=item.get('background', PALETTE[index])))
+                          w=width, h=height, line_height=line_height, color=item.get('background', PALETTE[index])))
     return cards
 
 
@@ -198,10 +203,13 @@ def route(mask, start, goal, step=6):
 
 def render(data, destination, font_path=None):
     validate(data)
-    font = load_font(28, font_path)
-    heading_font = load_font(40, font_path)
+    font_size = data.get('font_size', 28)
+    font = load_font(font_size, font_path)
+    heading_font = load_font(font_size + 12, font_path)
     title_lines = wrap(data.get('title', ''), heading_font, 1000) if data.get('title') else []
-    title_height = len(title_lines) * 54 + (24 if title_lines else 0)
+    title_line_height = max(heading_font.size + 14,
+                            max((heading_font.getbbox(line, anchor='lt')[3] for line in title_lines), default=0) + 8)
+    title_height = len(title_lines) * title_line_height + (24 if title_lines else 0)
     cards = make_cards(data, font)
     size, (ox, oy) = layout(cards, title_height)
     canvas = Image.new('RGB', size, BACKGROUND)
@@ -244,15 +252,16 @@ def render(data, destination, font_path=None):
         x,y = card['box'][:2]
         ink = foreground(card['color'])
         outline = '#ffffff' if ink == '#000000' else '#000000'
+        line_height = card['line_height']
         for line, underline in card['lines']:
             draw.text((x+18,y+12), line, font=font, fill=ink, anchor='lt',
                       stroke_width=1, stroke_fill=outline)
             if underline and line:
-                draw.line((x+18,y+44,x+18+font.getlength(line),y+44), fill=outline, width=4)
-                draw.line((x+18,y+44,x+18+font.getlength(line),y+44), fill=ink, width=2)
-            y += 38
+                draw.line((x+18,y+12+line_height-6,x+18+font.getlength(line),y+12+line_height-6), fill=outline, width=4)
+                draw.line((x+18,y+12+line_height-6,x+18+font.getlength(line),y+12+line_height-6), fill=ink, width=2)
+            y += line_height
     for index, line in enumerate(title_lines):
-        draw.text((size[0]//2, 20+index*54), line, font=heading_font, fill='white', anchor='mt')
+        draw.text((size[0]//2, 20+index*title_line_height), line, font=heading_font, fill='white', anchor='mt')
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(destination)
