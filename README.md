@@ -6,6 +6,16 @@ around it, with underlined optional headings and one binding per line. Pointers
 route around the other mapped button surfaces, cards, and pointers. Margins grow
 with the content; long text wraps instead of extending cards indefinitely.
 
+This entire repo was vibe-coded to save myself time. I just wanted to be able to
+modify my WoW hotkeys and update their reference image without spending a ton of
+time on it.
+
+## Example: my WoW shortcuts
+
+This is the output generated from [WoW.json](WoW.json):
+
+![WoW shortcuts annotated on a Swiftpoint Z3 mouse](output/WoW.png)
+
 ## Run
 
 Requires Python 3.10 or newer.
@@ -107,6 +117,8 @@ button. Extremely crowded configurations can make routing impossible; those
 profiles report a failure instead of drawing across protected controls. Large
 amounts of text naturally require more canvas space.
 
-Generated PNGs, virtual environments, and Python caches are ignored by Git.
+Generated PNGs are ignored by Git except for `output/WoW.png`, which is tracked
+as the README example. Running the renderer updates that example too. Virtual
+environments and Python caches are also ignored.
 The supplied photograph remains subject to its original rights; no license to
 redistribute that photograph is asserted here.

@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 .DS_Store
 output/*.png
+!output/WoW.png
 
 # Local credentials and environment files
 .env
