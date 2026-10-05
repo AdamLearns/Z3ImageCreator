@@ -1,6 +1,8 @@
 {
   "title": "WoW bindings",
-  "font_size": 32,
+  "font_size": 64,
+  "layout": "readable",
+  "scale_text_outline": true,
   "buttons": {
     "front_edge": {
       "bindings": [

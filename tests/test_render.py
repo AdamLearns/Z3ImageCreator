@@ -89,6 +89,48 @@ class RendererTests(unittest.TestCase):
             for b in boxes[i+1:]:
                 self.assertFalse(a[0] < b[2] and a[2] > b[0] and a[1] < b[3] and a[3] > b[1])
 
+    def test_readability_options_are_opt_in(self):
+        wow = json.loads((render.ROOT/'WoW.json').read_text())
+        classic = dict(wow)
+        classic.pop('layout')
+        classic.pop('scale_text_outline')
+        font = render.load_font(classic['font_size'])
+        cards = render.make_cards(classic, font)
+        for card in cards:
+            self.assertEqual(card['side'], render.BUTTONS[card['name']][0])
+            self.assertLessEqual(card['w'], 446)
+        readable_cards = render.make_cards(wow, font)
+        self.assertGreater(max(c['w'] for c in readable_cards), 446)
+        for options in ({'layout': 'unknown'}, {'layout': None},
+                        {'scale_text_outline': 1}, {'scale_text_outline': 'true'}):
+            with self.subTest(options=options), self.assertRaises(ValueError):
+                render.validate(dict(classic, **options))
+        original = ImageDraw.ImageDraw.text
+        with tempfile.TemporaryDirectory() as directory:
+            for scaled, expected in ((False, 1), (True, 2)):
+                profile = {'font_size': 64, 'scale_text_outline': scaled,
+                           'buttons': {'scroll': {'bindings': ['Zoom']}}}
+                with patch.object(ImageDraw.ImageDraw, 'text', autospec=True, side_effect=original) as text:
+                    render.render(profile, Path(directory)/f'{scaled}.png')
+                self.assertEqual(text.call_args.kwargs['stroke_width'], expected)
+
+    def test_wow_labels_remain_large_at_notes_display_width(self):
+        wow = json.loads((render.ROOT/'WoW.json').read_text())
+        font = render.load_font(wow['font_size'])
+        cards = render.make_cards(wow, font)
+        (width,height), (ox,oy) = render.layout(cards, 100)
+        # The supplied notes screenshot displays each image at 767px wide.
+        self.assertGreaterEqual(font.size * 767 / width, 24)
+        sides = {card['name']: card['side'] for card in cards}
+        self.assertEqual(sides['right_trigger'], 'top')
+        self.assertEqual(sides['top_thumb'], 'bottom')
+        self.assertEqual(sides['left_trigger'], 'bottom')
+        boxes = [c['box'] for c in cards] + [(ox,oy,ox+1036,oy+1218)]
+        for i,a in enumerate(boxes):
+            self.assertTrue(0 <= a[0] < a[2] <= width and 0 <= a[1] < a[3] <= height)
+            for b in boxes[i+1:]:
+                self.assertFalse(a[0] < b[2] and a[2] > b[0] and a[1] < b[3] and a[3] > b[1])
+
     def test_render_wow_and_all_buttons(self):
         wow = json.loads((render.ROOT/'WoW.json').read_text())
         self.assertIn('Right finger: end movement', wow['buttons']['top_thumb']['bindings'])

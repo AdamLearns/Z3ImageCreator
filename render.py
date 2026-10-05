@@ -36,13 +36,17 @@ BUTTONS = {
 
 def validate(data):
     """Strict validation prevents unrelated JSON files silently becoming images."""
-    if not isinstance(data, dict) or set(data) - {'title', 'font_size', 'buttons'}:
-        raise ValueError('expected an object with only title, font_size, and buttons')
+    if not isinstance(data, dict) or set(data) - {'title', 'font_size', 'layout', 'scale_text_outline', 'buttons'}:
+        raise ValueError('expected an object with only title, font_size, layout, scale_text_outline, and buttons')
     if 'title' in data and not isinstance(data['title'], str):
         raise ValueError('title must be a string')
     size = data.get('font_size', 28)
     if type(size) is not int or not 8 <= size <= 128:
         raise ValueError('font_size must be an integer from 8 to 128 pixels')
+    if data.get('layout', 'classic') not in ('classic', 'readable'):
+        raise ValueError('layout must be classic or readable')
+    if type(data.get('scale_text_outline', False)) is not bool:
+        raise ValueError('scale_text_outline must be a boolean')
     if not isinstance(data.get('buttons'), dict) or not data['buttons']:
         raise ValueError('buttons must be a nonempty object')
     for name, item in data['buttons'].items():
@@ -96,25 +100,33 @@ def wrap(text, font, width):
 
 def make_cards(data, font):
     cards = []
+    readable = data.get('layout', 'classic') == 'readable'
+    text_width = max(410, font.size * 14) if readable else 410
     for index, name in enumerate(BUTTONS):
         if name not in data['buttons']:
             continue
         item = data['buttons'][name]
-        lines = [(line, True) for line in wrap(item['title'], font, 410)] if item.get('title') else []
+        lines = [(line, True) for line in wrap(item['title'], font, text_width)] if item.get('title') else []
         for binding in item['bindings']:
-            lines.extend((line, False) for line in wrap(binding, font, 410))
+            lines.extend((line, False) for line in wrap(binding, font, text_width))
         width = math.ceil(max(font.getlength(line) for line, _ in lines)) + 36
         line_height = max(font.size + 10,
                           max(font.getbbox(line, anchor='lt')[3] for line, _ in lines) + 8)
         height = len(lines) * line_height + 28
-        cards.append(dict(name=name, side=BUTTONS[name][0], lines=lines,
+        side = BUTTONS[name][0]
+        # Wide multi-line cards belong above/below the mouse, so larger fonts
+        # do not grow both side margins and get shrunk again by note viewers.
+        if readable and width > 1036 * .45 and len(lines) >= 4:
+            side = 'top' if BUTTONS[name][1][1] <= 450 else 'bottom'
+        cards.append(dict(name=name, side=side, lines=lines,
                           w=width, h=height, line_height=line_height, color=item.get('background', PALETTE[index])))
     return cards
 
 
 def layout(cards, title_height):
-    groups = {side: [c for c in cards if c['side'] == side] for side in ('top', 'left', 'right')}
-    groups['top'].sort(key=lambda c: BUTTONS[c['name']][1][0])
+    groups = {side: [c for c in cards if c['side'] == side] for side in ('top', 'bottom', 'left', 'right')}
+    for side in ('top', 'bottom'):
+        groups[side].sort(key=lambda c: BUTTONS[c['name']][1][0])
     for side in ('left', 'right'):
         groups[side].sort(key=lambda c: {'left_fingertip': 460, 'bottom_thumb': 720}.get(c['name'], BUTTONS[c['name']][1][1]))
     gap, margin = 26, 32
@@ -122,14 +134,20 @@ def layout(cards, title_height):
     right = max((c['w'] for c in groups['right']), default=0)
     top = max((c['h'] for c in groups['top']), default=0)
     width = max(1036 + left + right + 4 * margin,
-                sum(c['w'] + gap for c in groups['top']) - gap + 2 * margin)
+                *(sum(c['w'] for c in groups[side]) + gap * max(0, len(groups[side])-1)
+                  + 2 * margin for side in ('top', 'bottom')))
     body_height = max(1218, *(sum(c['h'] + gap for c in groups[s]) + margin for s in ('left', 'right')))
     origin = ((width - 1036 - right + left) // 2, title_height + top + 2 * margin)
-    height = origin[1] + body_height + margin
-    x = (width - sum(c['w'] for c in groups['top']) - gap * max(0, len(groups['top']) - 1)) // 2
-    for card in groups['top']:
-        card['box'] = (x, title_height + margin + top - card['h'], x + card['w'], title_height + margin + top)
-        x += card['w'] + gap
+    body_bottom = origin[1] + body_height
+    bottom = max((c['h'] for c in groups['bottom']), default=0)
+    height = body_bottom + (bottom + margin if bottom else 0) + margin
+    for side in ('top', 'bottom'):
+        group = groups[side]
+        x = (width - sum(c['w'] for c in group) - gap * max(0, len(group)-1)) // 2
+        for card in group:
+            y = title_height + margin + top - card['h'] if side == 'top' else body_bottom + margin
+            card['box'] = (x, y, x + card['w'], y + card['h'])
+            x += card['w'] + gap
     for side in ('left', 'right'):
         group = groups[side]
         # Pack near the corresponding button; clamp the whole stack to the image.
@@ -137,7 +155,7 @@ def layout(cards, title_height):
         for i, card in enumerate(group):
             remaining = sum(c['h'] + gap for c in group[i:]) - gap
             desired = origin[1] + BUTTONS[card['name']][1][1] - card['h'] // 2
-            y = max(cursor, min(desired, height - margin - remaining))
+            y = max(cursor, min(desired, body_bottom - remaining))
             x = origin[0] - margin - card['w'] if side == 'left' else origin[0] + 1036 + margin
             card['box'] = (x, y, x + card['w'], y + card['h'])
             cursor = y + card['h'] + gap
@@ -203,6 +221,8 @@ def render(data, destination, font_path=None):
     title_line_height = max(heading_font.size + 14,
                             max((heading_font.getbbox(line, anchor='lt')[3] for line in title_lines), default=0) + 8)
     title_height = len(title_lines) * title_line_height + (24 if title_lines else 0)
+    text_stroke = max(1, round(font.size / 32)) if data.get('scale_text_outline', False) else 1
+    heading_stroke = max(1, round(heading_font.size / 32)) if data.get('scale_text_outline', False) else 1
     cards = make_cards(data, font)
     size, (ox, oy) = layout(cards, title_height)
     canvas = Image.new('RGB', size, BACKGROUND)
@@ -226,6 +246,8 @@ def render(data, destination, font_path=None):
         x1,y1,x2,y2 = card['box']
         if card['side'] == 'top':
             port, start = ((x1+x2)//2,y2), ((x1+x2)//2,y2+18)
+        elif card['side'] == 'bottom':
+            port, start = ((x1+x2)//2,y1), ((x1+x2)//2,y1-18)
         elif card['side'] == 'left':
             port, start = (x2,(y1+y2)//2), (x2+18,(y1+y2)//2)
         else:
@@ -248,14 +270,14 @@ def render(data, destination, font_path=None):
         line_height = card['line_height']
         for line, underline in card['lines']:
             draw.text((x+18,y+12), line, font=font, fill=ink, anchor='lt',
-                      stroke_width=1, stroke_fill=outline)
+                      stroke_width=text_stroke, stroke_fill=outline)
             if underline and line:
                 draw.line((x+18,y+12+line_height-6,x+18+font.getlength(line),y+12+line_height-6), fill=outline, width=4)
                 draw.line((x+18,y+12+line_height-6,x+18+font.getlength(line),y+12+line_height-6), fill=ink, width=2)
             y += line_height
     for index, line in enumerate(title_lines):
         draw.text((size[0]//2, 20+index*title_line_height), line, font=heading_font, fill='#ffffff', anchor='mt',
-                  stroke_width=1, stroke_fill='#000000')
+                  stroke_width=heading_stroke, stroke_fill='#000000')
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(destination)

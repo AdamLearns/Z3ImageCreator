@@ -45,7 +45,9 @@ corrected. It uses the default unique button colors. Run the command above to ge
 ```json
 {
   "title": "WoW bindings",
-  "font_size": 32,
+  "font_size": 64,
+  "layout": "readable",
+  "scale_text_outline": true,
   "buttons": {
     "left_fingertip": {
       "background": "#b52e39",
@@ -63,7 +65,16 @@ corrected. It uses the default unique button colors. Run the command above to ge
 - The outer `font_size` sets label and card-heading text size in pixels. It is
   optional (default: 28), and must be an integer from 8 to 128. The image title
   uses 12px larger text. Line spacing and card heights adjust automatically.
-  `WoW.json` uses 32px, 4px larger than the original labels.
+  `WoW.json` uses 64px so labels stay readable when a notes app displays the
+  whole image at about 767px wide. The font size is measured in the saved image;
+  its apparent size is `font_size × displayed_width / image_width`.
+- The outer `layout` is optional: `"classic"` (default) keeps the original 410px
+  wrapping width and top/side card placements. `"readable"` widens wrapping with
+  the font size and moves wide multi-line cards above and below the mouse to keep
+  the canvas narrow. `WoW.json` explicitly uses `"readable"`.
+- The outer `scale_text_outline` is optional (default: `false`). Set it to `true`
+  to scale the black outline with the font size; otherwise outlines stay 1px wide.
+  `WoW.json` enables it for the larger font.
 - `buttons` is a nonempty object. Omit any button you don't want to annotate.
 - Each button's `title` is optional. If present and nonempty, it appears above its
   bindings and is underlined. An omitted title leaves no heading or blank line.
@@ -116,7 +127,10 @@ third supplied image for names. Replacing the base requires recalibrating those
 coordinates. The [Swiftpoint quick-start guide](https://support.swiftpoint.com/portal/en/kb/articles/quick-start-guide)
 also describes the fingertip and trigger caps.
 
-Cards use top, left, and right regions and are packed without overlap. The mouse
+Cards use top, bottom, left, and right regions and are packed without overlap.
+With `"layout": "readable"`, wrapping width grows with the font size. Wide
+multi-line cards move above or below the mouse, instead of expanding both side
+margins and making all text shrink when displayed at a fixed width. The mouse
 is never stretched or cropped. Pointers use obstacle-aware routing with straight
 segment simplification. Their small endpoint dots deliberately touch the named
 button. Extremely crowded configurations can make routing impossible; those
