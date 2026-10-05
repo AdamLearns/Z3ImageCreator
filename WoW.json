@@ -1,0 +1,67 @@
+{
+  "title": "WoW bindings",
+  "buttons": {
+    "front_edge": {
+      "bindings": [
+        "8 CC"
+      ]
+    },
+    "rear_edge": {
+      "bindings": [
+        "Bksp autorun"
+      ]
+    },
+    "left_fingertip": {
+      "bindings": [
+        "NUM. interrupt"
+      ]
+    },
+    "right_fingertip": {
+      "title": "Infrequent battle abils",
+      "bindings": [
+        "Left finger: NUM0 pull",
+        "Front edge: - health pot",
+        "Rear edge: = mana pot",
+        "Bottom thumb: Y infreq AoE",
+        "Top thumb: R freq AoE"
+      ]
+    },
+    "right_trigger": {
+      "title": "UI",
+      "bindings": [
+        "← \\ char",
+        "↑ M map",
+        "→ ⇧B bags",
+        "↓ Esc",
+        "Bottom thumb: enter",
+        "Scroll: alt+↑↓"
+      ]
+    },
+    "left_trigger": {
+      "title": "Social",
+      "bindings": [
+        "← /i",
+        "↑ /cheer",
+        "↓ /thank",
+        "→ buff (AI, PW:S, MotW)",
+        "Bottom thumb: PgDn",
+        "Top thumb: PgUp"
+      ]
+    },
+    "bottom_thumb": {
+      "bindings": [
+        "Space jump"
+      ]
+    },
+    "top_thumb": {
+      "title": "Common",
+      "bindings": [
+        "Left finger: home mount",
+        "Right finger: end movement",
+        "Front edge: , infreq racial",
+        "Rear edge: . freq racial",
+        "Scroll: T /tar"
+      ]
+    }
+  }
+}
