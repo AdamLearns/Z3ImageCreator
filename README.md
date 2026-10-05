@@ -48,7 +48,7 @@ corrected. It uses the default unique button colors. Run the command above to ge
   "font_size": 32,
   "buttons": {
     "left_fingertip": {
-      "background": "#ff594f",
+      "background": "#b52e39",
       "bindings": ["NUM. interrupt"]
     },
     "right_trigger": {
@@ -71,10 +71,11 @@ corrected. It uses the default unique button colors. Run the command above to ge
   be empty if a nonempty title is supplied. Unicode arrows and explicit `\n`
   line breaks are supported. Escape a literal backslash as `\\` in JSON.
 - `background` is an optional opaque `#RRGGBB` color. Each button otherwise uses
-  its own stable color from a fixed distinct palette, independent of which
-  buttons appear in the profile. Black or white text is selected using WCAG
-  relative luminance for at least 4.5:1 contrast. A contrasting outline around
-  the text and heading underline further separates them from the background.
+  its own stable color from a fixed, distinct dark palette, independent of which
+  buttons appear in the profile. All text is white with a black outline, including
+  the image title; heading underlines use the same colors. Default backgrounds
+  provide at least 4.5:1 contrast against white. Custom background colors are
+  used as supplied; choose a dark color for best readability.
 - Unknown properties and button names are rejected to catch typos.
 
 Supported button names:

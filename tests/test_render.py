@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from PIL import Image
+from PIL import Image, ImageDraw
 import render
 
 
@@ -54,16 +54,27 @@ class RendererTests(unittest.TestCase):
         for card in wow_cards:
             self.assertEqual(card['color'], colors[card['name']])
 
-    def test_contrast(self):
-        for r in range(0, 256, 17):
-            for g in range(0, 256, 17):
-                for b in range(0, 256, 17):
-                    color = f'#{r:02x}{g:02x}{b:02x}'
-                    rgb = [c/255 for c in (r,g,b)]
-                    light = sum((c/12.92 if c <= .04045 else ((c+.055)/1.055)**2.4)*w
-                                for c,w in zip(rgb,(.2126,.7152,.0722)))
-                    ratio = (light+.05)/.05 if render.foreground(color) == '#000000' else 1.05/(light+.05)
-                    self.assertGreaterEqual(ratio, 4.5)
+    def test_default_backgrounds_contrast_with_white(self):
+        for color in render.PALETTE:
+            with self.subTest(color=color):
+                rgb = [int(color[i:i+2], 16)/255 for i in (1, 3, 5)]
+                light = sum((c/12.92 if c <= .04045 else ((c+.055)/1.055)**2.4)*w
+                            for c,w in zip(rgb,(.2126,.7152,.0722)))
+                self.assertGreaterEqual(1.05/(light+.05), 4.5)
+
+    def test_all_text_is_white_with_black_outline(self):
+        profile = {'title': 'Image title', 'buttons': {
+            'scroll': {'title': 'Card title', 'bindings': ['Binding'], 'background': '#ffffff'},
+            'front_edge': {'bindings': ['Another binding']}}}
+        original = ImageDraw.ImageDraw.text
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(ImageDraw.ImageDraw, 'text', autospec=True, side_effect=original) as text:
+                render.render(profile, Path(directory)/'text.png')
+            self.assertEqual(text.call_count, 4)
+            for call in text.call_args_list:
+                self.assertEqual(call.kwargs['fill'], '#ffffff')
+                self.assertEqual(call.kwargs['stroke_fill'], '#000000')
+                self.assertGreater(call.kwargs['stroke_width'], 0)
 
     def test_long_cards_do_not_overlap(self):
         font = render.load_font(28)

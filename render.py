@@ -13,8 +13,9 @@ import sys
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent
-PALETTE = ('#aeb5bf', '#b88755', '#a8d64f', '#ff594f', '#ff9e32', '#3979df',
-           '#00b5df', '#ff4778', '#00a58f', '#7953ee', '#ffe32d')
+# Distinct dark colors, each with at least 4.5:1 contrast against white.
+PALETTE = ('#4b5563', '#79502e', '#566b24', '#b52e39', '#a04c13', '#285bb4',
+           '#006d8b', '#ad285b', '#007568', '#7044cb', '#7c6516')
 BACKGROUND = '#191919'
 # Visible button surfaces, in pixels of the unmodified 1036 x 1218 base.
 # Main click surfaces exclude the fingertip caps mounted above them.
@@ -60,14 +61,6 @@ def validate(data):
                 not re.fullmatch(r'#[0-9a-fA-F]{6}', item['background'])):
             raise ValueError(f'{name}: background must be an opaque #RRGGBB color')
     return data
-
-
-def foreground(color):
-    rgb = [int(color[i:i+2], 16) / 255 for i in (1, 3, 5)]
-    linear = [v / 12.92 if v <= .04045 else ((v + .055) / 1.055) ** 2.4 for v in rgb]
-    luminance = sum(v * w for v, w in zip(linear, (.2126, .7152, .0722)))
-    # One of black and white always reaches at least 4.58:1 on an opaque color.
-    return '#000000' if (luminance + .05) / .05 >= 1.05 / (luminance + .05) else '#ffffff'
 
 
 def load_font(size, override=None):
@@ -250,8 +243,8 @@ def render(data, destination, font_path=None):
     for card in cards:
         draw.rounded_rectangle(card['box'], radius=12, fill=card['color'])
         x,y = card['box'][:2]
-        ink = foreground(card['color'])
-        outline = '#ffffff' if ink == '#000000' else '#000000'
+        ink = '#ffffff'
+        outline = '#000000'
         line_height = card['line_height']
         for line, underline in card['lines']:
             draw.text((x+18,y+12), line, font=font, fill=ink, anchor='lt',
@@ -261,7 +254,8 @@ def render(data, destination, font_path=None):
                 draw.line((x+18,y+12+line_height-6,x+18+font.getlength(line),y+12+line_height-6), fill=ink, width=2)
             y += line_height
     for index, line in enumerate(title_lines):
-        draw.text((size[0]//2, 20+index*title_line_height), line, font=heading_font, fill='white', anchor='mt')
+        draw.text((size[0]//2, 20+index*title_line_height), line, font=heading_font, fill='#ffffff', anchor='mt',
+                  stroke_width=1, stroke_fill='#000000')
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(destination)
