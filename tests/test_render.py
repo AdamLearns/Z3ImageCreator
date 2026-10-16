@@ -48,7 +48,7 @@ class RendererTests(unittest.TestCase):
         cards = render.make_cards(profile, font)
         colors = {c['name']: c['color'] for c in cards}
         self.assertEqual(len(set(colors.values())), len(render.BUTTONS))
-        wow = json.loads((render.ROOT/'WoW.json').read_text())
+        wow = json.loads((render.ROOT/'JSON'/'WoW.json').read_text())
         wow_cards = render.make_cards(wow, font)
         self.assertEqual(len({c['color'] for c in wow_cards}), len(wow_cards))
         for card in wow_cards:
@@ -90,7 +90,7 @@ class RendererTests(unittest.TestCase):
                 self.assertFalse(a[0] < b[2] and a[2] > b[0] and a[1] < b[3] and a[3] > b[1])
 
     def test_readability_options_are_opt_in(self):
-        wow = json.loads((render.ROOT/'WoW.json').read_text())
+        wow = json.loads((render.ROOT/'JSON'/'WoW.json').read_text())
         classic = dict(wow)
         classic.pop('layout')
         classic.pop('scale_text_outline')
@@ -115,7 +115,7 @@ class RendererTests(unittest.TestCase):
                 self.assertEqual(text.call_args.kwargs['stroke_width'], expected)
 
     def test_wow_labels_remain_large_at_notes_display_width(self):
-        wow = json.loads((render.ROOT/'WoW.json').read_text())
+        wow = json.loads((render.ROOT/'JSON'/'WoW.json').read_text())
         font = render.load_font(wow['font_size'])
         cards = render.make_cards(wow, font)
         (width,height), (ox,oy) = render.layout(cards, 100)
@@ -132,7 +132,7 @@ class RendererTests(unittest.TestCase):
                 self.assertFalse(a[0] < b[2] and a[2] > b[0] and a[1] < b[3] and a[3] > b[1])
 
     def test_render_wow_and_all_buttons(self):
-        wow = json.loads((render.ROOT/'WoW.json').read_text())
+        wow = json.loads((render.ROOT/'JSON'/'WoW.json').read_text())
         self.assertIn('Right finger: end movement', wow['buttons']['top_thumb']['bindings'])
         profiles = [wow, {'buttons': {name: {'title': name, 'bindings': ['Example → binding']}
                                       for name in render.BUTTONS}}]

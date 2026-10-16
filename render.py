@@ -286,7 +286,7 @@ def render(data, destination, font_path=None):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--input-dir', type=Path, default=ROOT, help='default: directory containing render.py')
+    parser.add_argument('--input-dir', type=Path, default=ROOT / 'JSON', help='default: JSON folder beside render.py')
     parser.add_argument('--output-dir', type=Path, default=ROOT / 'output')
     parser.add_argument('--font', type=Path, help='Unicode TrueType/OpenType font')
     args = parser.parse_args(argv)

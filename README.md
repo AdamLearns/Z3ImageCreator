@@ -12,7 +12,7 @@ time on it.
 
 ## Example: my WoW shortcuts
 
-This is the output generated from [WoW.json](WoW.json):
+This is the output generated from [JSON/WoW.json](JSON/WoW.json):
 
 ![WoW shortcuts annotated on a Swiftpoint Z3 mouse](output/WoW.png)
 
@@ -29,7 +29,7 @@ python render.py
 
 On Windows activate with `.venv\Scripts\activate` instead.
 
-The program scans **the directory containing `render.py`**, regardless of your
+The program scans **the `JSON` folder beside `render.py`**, regardless of your
 current working directory, for `.json` files (case-insensitive extension). It
 processes them alphabetically and writes `output/<input-name>.png`, replacing
 previous renders of the same name. Each processed or skipped filename is printed,
@@ -37,7 +37,7 @@ followed by a count. Invalid JSON, unrelated JSON, and invalid profiles are repo
 and skipped; remaining files still run. Exit status is 1 if any file failed, 0
 otherwise. A run with no JSON files reports zero files.
 
-`WoW.json` contains all the bindings in the supplied reference, with “Right finger”
+`JSON/WoW.json` contains all the bindings in the supplied reference, with “Right finger”
 corrected. It uses the default unique button colors. Run the command above to generate `output/WoW.png`.
 
 ## Profile format
@@ -65,16 +65,16 @@ corrected. It uses the default unique button colors. Run the command above to ge
 - The outer `font_size` sets label and card-heading text size in pixels. It is
   optional (default: 28), and must be an integer from 8 to 128. The image title
   uses 12px larger text. Line spacing and card heights adjust automatically.
-  `WoW.json` uses 64px so labels stay readable when a notes app displays the
+  `JSON/WoW.json` uses 64px so labels stay readable when a notes app displays the
   whole image at about 767px wide. The font size is measured in the saved image;
   its apparent size is `font_size × displayed_width / image_width`.
 - The outer `layout` is optional: `"classic"` (default) keeps the original 410px
   wrapping width and top/side card placements. `"readable"` widens wrapping with
   the font size and moves wide multi-line cards above and below the mouse to keep
-  the canvas narrow. `WoW.json` explicitly uses `"readable"`.
+  the canvas narrow. `JSON/WoW.json` explicitly uses `"readable"`.
 - The outer `scale_text_outline` is optional (default: `false`). Set it to `true`
   to scale the black outline with the font size; otherwise outlines stay 1px wide.
-  `WoW.json` enables it for the larger font.
+  `JSON/WoW.json` enables it for the larger font.
 - `buttons` is a nonempty object. Omit any button you don't want to annotate.
 - Each button's `title` is optional. If present and nonempty, it appears above its
   bindings and is underlined. An omitted title leaves no heading or blank line.
