@@ -1,0 +1,70 @@
+{
+  "title": "WoW bindings",
+  "font_size": 64,
+  "layout": "readable",
+  "scale_text_outline": true,
+  "buttons": {
+    "front_edge": {
+      "bindings": [
+        "Earthbind Totem"
+      ]
+    },
+    "rear_edge": {
+      "bindings": [
+        "Autorun"
+      ]
+    },
+    "left_fingertip": {
+      "bindings": [
+        "Earth Shock"
+      ]
+    },
+    "right_fingertip": {
+      "title": "Infrequent battle abils",
+      "bindings": [
+        "Left finger: Lightning Bolt 1",
+        "Front edge: Health pot",
+        "Rear edge: Mana pot",
+        "Top thumb: Magma Totem",
+        "Bottom thumb: Fire Nova"
+      ]
+    },
+    "right_trigger": {
+      "title": "UI",
+      "bindings": [
+        "← char",
+        "↑ map",
+        "→ bags",
+        "↓ Esc",
+        "Bottom thumb: enter",
+        "Scroll: alt+↑↓"
+      ]
+    },
+    "left_trigger": {
+      "title": "Social",
+      "bindings": [
+        "← /i",
+        "↑ /cheer",
+        "↓ /thank",
+        "→ Windfury Weapon",
+        "Top thumb: PgUp",
+        "Bottom thumb: PgDn"
+      ]
+    },
+    "bottom_thumb": {
+      "bindings": [
+        "Jump"
+      ]
+    },
+    "top_thumb": {
+      "title": "Common",
+      "bindings": [
+        "Left finger: mount",
+        "Right finger: Ghost Wolf",
+        "Front edge: Walk on Air",
+        "Rear edge: Skysight",
+        "Scroll: /tar"
+      ]
+    }
+  }
+}
